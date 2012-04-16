@@ -76,33 +76,42 @@ public class GraphNode<Type>
         look();
 
         result.add(to);
-        to.addMin(result);
+        to.addMin(result, to.estimation, 0);
 
         return result;
     }
 
-    protected void addMin(ArrayList<GraphNode<Type> > to)
+    protected void addMin(ArrayList<GraphNode<Type> > to, Integer exp, Integer real)
     {
         Integer shortest = null;
         GraphNode<Type> next = null;
+//        GraphNode<Type> first = null;
+
         Iterator it = related.keySet().iterator();
         while (it.hasNext())
         {
             GraphNode<Type> tm = (GraphNode<Type>) it.next();
-            if(shortest == null || shortest > ((tm.estimation == 0)?getEgdeWeight(tm):tm.estimation))// tm.estimation < shortest)
+            if(shortest == null || shortest > tm.estimation)// tm.estimation < shortest)
             {
-                shortest = tm.estimation;
-                next = tm;
+                if(tm.estimation  !=0 || real+getEgdeWeight(tm) == exp)
+                {
+                    shortest = tm.estimation;
+                    next = tm;
+                }
             }
         }
 
-
+//        if(first!= null && (shortest == null || shortest > ((first.estimation == 0)?(getEgdeWeight(first)):first.estimation)))
+//        {
+//            shortest = first.estimation;
+//            next = first;
+//        }
 
         to.add(0, next);
 
         if(next.estimation == 0)
             return;
-        next.addMin(to);
+        next.addMin(to, exp, real + getEgdeWeight(next));
     }
 
     protected void look()
@@ -128,6 +137,16 @@ public class GraphNode<Type>
             }
 
         }
+
+//        Iterator nit = related.keySet().iterator();
+//        while (nit.hasNext())
+//        {
+//            GraphNode<Type> tm = (GraphNode<Type>) nit.next();
+//            if(!tm.isMarked())
+//            {
+//                tm.look();
+//            }
+//        }  //не так жадно)
 
         if(next != null)
             next.look(); //ооочень жадно
