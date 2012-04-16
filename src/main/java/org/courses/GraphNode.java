@@ -17,13 +17,14 @@ public class GraphNode<Type>
 {
     protected HashMap<GraphNode<Type>, Integer> related;
     protected boolean marked = false;
-    protected Integer estimation = null;
+    protected Integer estimation = 219299911;
 
     Type data;
 
     public GraphNode(Type data)
     {
         this.data = data;
+        related = new HashMap<GraphNode<Type>, Integer>();
     }
 
     public Integer getEstimation()
@@ -31,10 +32,12 @@ public class GraphNode<Type>
         return estimation;
     }
 
-//    public GraphNode<Type> getRelated()
-//    {
-//
-//    }
+    public Object[] getRelated()
+    {
+        //TODO: Cast
+
+        return related.keySet().toArray();
+    }
 
     public void setEstimation(Integer estimation)
     {
@@ -72,7 +75,8 @@ public class GraphNode<Type>
         estimation = 0;
         look();
 
-        addMin(result);
+        result.add(to);
+        to.addMin(result);
 
         return result;
     }
@@ -85,19 +89,20 @@ public class GraphNode<Type>
         while (it.hasNext())
         {
             GraphNode<Type> tm = (GraphNode<Type>) it.next();
-            if(tm.estimation < shortest || shortest == null)
+            if(shortest == null || shortest > ((tm.estimation == 0)?getEgdeWeight(tm):tm.estimation))// tm.estimation < shortest)
             {
                 shortest = tm.estimation;
                 next = tm;
             }
         }
 
+
+
         to.add(0, next);
-        next.addMin(to);
 
         if(next.estimation == 0)
             return;
-
+        next.addMin(to);
     }
 
     protected void look()
@@ -109,19 +114,23 @@ public class GraphNode<Type>
         while (it.hasNext())
         {
             GraphNode<Type> tm = (GraphNode<Type>) it.next();
-            if(!tm.isMarked() && tm.estimation > estimation + getEgdeWeight(tm))
+            if(!tm.isMarked())
             {
-                tm.estimation = estimation + getEgdeWeight(tm);
-                if(tm.estimation < shortest || shortest == null)
+                if(tm.estimation == null || tm.estimation > estimation + getEgdeWeight(tm))
+                    tm.estimation = estimation + getEgdeWeight(tm);
+
+                if(tm.estimation != null && (shortest == null || tm.estimation < shortest))
                 {
                     shortest = tm.estimation;
                     next = tm;
                 }
+
             }
+
         }
 
         if(next != null)
-            next.look();
+            next.look(); //ооочень жадно
 
     }
 
@@ -133,7 +142,10 @@ public class GraphNode<Type>
         Iterator it = related.keySet().iterator();
         while (it.hasNext())
         {
-            result = result || ((GraphNode<Type>) it.next()).reInit(to);
+            GraphNode<Type> tm = (GraphNode<Type>) it.next();
+            result = result || tm == to;
+            if(tm.marked || tm.estimation!=null)
+                result = result || tm.reInit(to);
         }
 
         return result;
